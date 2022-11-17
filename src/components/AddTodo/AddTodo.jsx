@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {v4 as uuidv4} from 'uuid';
-
+import styles from './AddTodo.module.css';
 /* 추가하기 */
 export default function AddTodo({onAdd}) {
   const [nextId, setNextId]  = useState(3);
@@ -30,8 +30,9 @@ export default function AddTodo({onAdd}) {
 
 // *********************************************
   return (
-    <form>
+    <form className={styles.form}>
       <input
+        className={styles.input}
         type="text"
         placeholder="Add Todo"
         value={inputContent}
@@ -39,7 +40,9 @@ export default function AddTodo({onAdd}) {
       />
       <button
         type="button"
-        onClick={todosAdd}>Add</button>
+        onClick={todosAdd}
+        className={styles.button}
+      >Add</button>
     </form>
   );
 };

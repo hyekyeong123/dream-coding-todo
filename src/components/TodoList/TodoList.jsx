@@ -1,62 +1,55 @@
-import React, {useState} from 'react';
-import AddTodo from "../AddTodo/AddTodo";
-import TodoItem from "../TodoItem/TodoItem";
+import React, {useEffect, useState} from 'react';
+import AddTodo from '../AddTodo/AddTodo';
+import Todo from '../TodoItem/TodoItem';
+import styles from './TodoList.module.css';
 
-export default function TodoList(props) {
-  const [todos, setTodos] = useState([
-    {
-      id:1,
-      content:'장보기',
-      isDone: false
-    },
-    {
-      id:2,
-      content:'공부하기',
-      isDone: false
-    }
-  ]);
-// *********************************************
-  // 새로운 todo를 todos에 업데이트 하기
-  const handleAdd = (newTodos) => {
-    // setTodos(todos.concat(newTodos)); 또는
-    setTodos([...todos, newTodos])
-  }
+export default function TodoList({ selectedType }) {
 
-  const handleUpdate = (id) => {
-    setTodos(
-      todos.map(l => l.id === id ?
-        // 나머지는 그대로 두고 isDone만 변경
-        {
-          ...l,
-          isDone : !l.isDone
-        }
-        :
-        l
-      )
-    )
-  }
-  const handleDelete = (id) => {
-    setTodos(todos.filter(r => r.id !== id));
-  }
-// *********************************************
+  // 아래 방식으로 하면 좋은 성능이 나오지 않음(8.21 참조)
+  // - 따라서 함수 호출시에는 콜백 함수로 감싸는것이 좋음
+  // const [todos, setTodos] = useState(getTodosFromLocalStorage());
+  // 근데 왜 똑같지..
+  const [todos, setTodos] = useState(() => getTodosFromLocalStorage());
+
+  const handleAdd = (todo) => setTodos([...todos, todo]);
+  const handleUpdate = (updated) =>
+    setTodos(todos.map((t) => (t.id === updated.id ? updated : t)));
+  const handleDelete = (deleted) =>
+    setTodos(todos.filter((t) => t.id !== deleted.id));
+
+  const selectedTodos = getSelectedTodos(todos, selectedType);
+
+  // todos가 변경될때마다 localstorage에 저장
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }, [todos]);
+
+// ******************************************
   return (
-    <section>
-      <ul>
-        {
-          todos.map(item => (
-            <TodoItem
-              key={item.id}
-              item={item}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-            />
-          ))
-        }
+    <section className={styles.container}>
+      <ul className={styles.listBox}>
+        {selectedTodos.map((item) => (
+          <Todo
+            key={item.id}
+            todo={item}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
+        ))}
       </ul>
-
-      {/* 함수만 전달해줌*/}
-      <AddTodo onAdd={handleAdd}/>
+      <AddTodo onAdd={handleAdd} />
     </section>
   );
-};
-// *********************************************
+}
+function getSelectedTodos(todos, setSelectedType) {
+  if (setSelectedType === 'all') {
+    return todos;
+  }
+  return todos.filter((todo) => todo.status === setSelectedType);
+}
+
+// 로컬 저장소에서 todos 가져오기
+function getTodosFromLocalStorage() {
+  const todos = localStorage.getItem('todos');
+  return todos ? JSON.parse(todos) : [];
+}
